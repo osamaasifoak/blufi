@@ -1,4 +1,4 @@
-package com.example.freepowersocket
+package com.example.freepowersocket.services
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -36,8 +36,16 @@ class BleScanner(private val activity: Activity) {
     private var scanCallback: ScanCallback? = null
 
     suspend fun startScan(): Map<String, BluetoothDevice> = withContext(Dispatchers.IO) {
-        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
+        if (ContextCompat.checkSelfPermission(
+                activity,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                activity,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                1
+            )
             return@withContext emptyMap()
         }
 
@@ -88,49 +96,51 @@ class BleScanner(private val activity: Activity) {
             .build()
     }
 
-    suspend fun provisionDevice(device: BluetoothDevice, ssid: String, password: String) = withContext(Dispatchers.IO) {
-        val blufiClient = BlufiClient(activity, device)
-        blufiClient.setBlufiCallback(object : BlufiCallback() {
-            override fun onGattPrepared(
-                client: BlufiClient?,
-                gatt: BluetoothGatt?,
-                service: BluetoothGattService?,
-                writeChar: BluetoothGattCharacteristic?,
-                notifyChar: BluetoothGattCharacteristic?
-            ) {
-                super.onGattPrepared(client, gatt, service, writeChar, notifyChar)
-            }
-
-            override fun onConfigureResult(client: BlufiClient?, status: Int) {
-                if (status == STATUS_SUCCESS) {
-                    // Provisioning successful
-                    announceDeviceUsingMdns(device)
-                } else {
-                    // Provisioning failed
-                    Log.e("$status", client.toString())
+    suspend fun provisionDevice(device: BluetoothDevice, ssid: String, password: String) =
+        withContext(Dispatchers.IO) {
+            val blufiClient = BlufiClient(activity, device)
+            blufiClient.setBlufiCallback(object : BlufiCallback() {
+                override fun onGattPrepared(
+                    client: BlufiClient?,
+                    gatt: BluetoothGatt?,
+                    service: BluetoothGattService?,
+                    writeChar: BluetoothGattCharacteristic?,
+                    notifyChar: BluetoothGattCharacteristic?
+                ) {
+                    super.onGattPrepared(client, gatt, service, writeChar, notifyChar)
                 }
-            }
 
-            override fun onError(client: BlufiClient?, errCode: Int) {
-                Log.e("$errCode", client.toString())
-                // Handle error
-            }
-        })
+                override fun onConfigureResult(client: BlufiClient?, status: Int) {
+                    if (status == STATUS_SUCCESS) {
+                        // Provisioning successful
+                        announceDeviceUsingMdns(device)
+                    } else {
+                        // Provisioning failed
+                        Log.e("$status", client.toString())
+                    }
+                }
 
-        blufiClient.connect()
+                override fun onError(client: BlufiClient?, errCode: Int) {
+                    Log.e("$errCode", client.toString())
+                    // Handle error
+                }
+            })
 
-        val params = BlufiConfigureParams()
-        params.opMode = BlufiParameter.OP_MODE_STA
-        params.staSSIDBytes = ssid.toByteArray()
-        params.staPassword = password
-        blufiClient.configure(params)
-    }
+            blufiClient.connect()
+
+            val params = BlufiConfigureParams()
+            params.opMode = BlufiParameter.OP_MODE_STA
+            params.staSSIDBytes = ssid.toByteArray()
+            params.staPassword = password
+            blufiClient.configure(params)
+        }
 
     @SuppressLint("MissingPermission")
     private fun announceDeviceUsingMdns(device: BluetoothDevice) {
         try {
             val jmdns = JmDNS.create(InetAddress.getLocalHost())
-            val serviceInfo = ServiceInfo.create("_http._tcp.local.", device.name, 80, "path=index.html")
+            val serviceInfo =
+                ServiceInfo.create("_http._tcp.local.", device.name, 80, "path=index.html")
             jmdns.registerService(serviceInfo)
         } catch (e: IOException) {
             e.printStackTrace()
