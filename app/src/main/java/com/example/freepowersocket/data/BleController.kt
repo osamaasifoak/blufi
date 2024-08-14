@@ -124,7 +124,8 @@ class BleController(
     ) =
         withContext(Dispatchers.IO) {
             val blufiClient = BlufiClient(activity, device.device)
-            blufiClient.setBlufiCallback(object : BlufiCallback() {
+            blufiClient.setBlufiCallback( object : BlufiCallback() {
+
                 override fun onGattPrepared(
                     client: BlufiClient?,
                     gatt: BluetoothGatt?,
@@ -147,6 +148,11 @@ class BleController(
                     } else {
                         // Provisioning failed
                         Log.e("$status", client.toString())
+                        _pairedDevices.update { devices ->
+                            if (device in devices) devices
+                            else devices + device
+
+                        }
                     }
                 }
 
@@ -159,9 +165,11 @@ class BleController(
             blufiClient.connect()
 
             val params = BlufiConfigureParams()
-            params.opMode = BlufiParameter.OP_MODE_STA
-            params.staSSIDBytes = ssid.toByteArray()
-            params.staPassword = password
+            params.opMode = BlufiParameter.OP_MODE_SOFTAP
+            params.softAPChannel = 6  // Choose a valid channel (1-13 for 2.4GHz)
+            params.softAPMaxConnection = 4
+//            params.staSSIDBytes = ssid.toByteArray()
+//            params.staPassword = password
             blufiClient.configure(params)
         }
 

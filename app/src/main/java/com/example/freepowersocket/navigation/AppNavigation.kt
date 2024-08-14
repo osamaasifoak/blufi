@@ -12,15 +12,24 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.freepowersocket.presentation.BleViewModel
+import com.example.freepowersocket.presentation.components.DeviceScanScreen
 import com.example.freepowersocket.presentation.components.DeviceScreen
 import com.example.freepowersocket.presentation.components.WifiPasswordScreen
 
 @Composable
-fun AppNavigation(navController: NavHostController = rememberNavController(), activity: Activity, context: Context) {
-    NavHost(navController = navController, startDestination = "WifiPasswordScreen") {
+fun AppNavigation(
+    navController: NavHostController = rememberNavController(),
+    activity: Activity,
+    context: Context
+) {
+    NavHost(navController = navController, startDestination = "DeviceScanScreen") {
+
+        composable("DeviceScanScreen") {
+            DeviceScanScreen(navController = navController)
+        }
 
         composable("WifiPasswordScreen") {
-            WifiPasswordScreen(navController)
+            WifiPasswordScreen(navController = navController)
         }
 
         composable("DeviceScreen/?password={password}",
