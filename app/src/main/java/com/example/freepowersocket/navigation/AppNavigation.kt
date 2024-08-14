@@ -25,7 +25,13 @@ fun AppNavigation(
     NavHost(navController = navController, startDestination = "DeviceScanScreen") {
 
         composable("DeviceScanScreen") {
-            DeviceScanScreen(navController = navController)
+            val viewModel = hiltViewModel<BleViewModel>()
+            val state by viewModel.state.collectAsState()
+            DeviceScanScreen(
+                navController = navController,
+                onStartScan = viewModel::startScan,
+                state = state,
+            )
         }
 
         composable("WifiPasswordScreen") {
