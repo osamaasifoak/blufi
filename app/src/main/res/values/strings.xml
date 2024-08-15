@@ -2,5 +2,11 @@
     <string name="app_name">FreePowerSocket</string>
     <string name="connect_new_devices">Connect new devices </string>
     <string name="scanning_for_new_devices">Scanning for new devices…</string>
+    <string name="scan_completed">Scan completed</string>
+    <string name="configure_wifi">Configure WiFi</string>
+    <string name="wifi">WiFi</string>
+    <string name="password">Password</string>
+    <string name="submit">Submit</string>
+    <string name="continue_">Continue</string>
 
 </resources>

@@ -8,7 +8,7 @@ interface BleControllerInterface {
     val scannedDevices: StateFlow<List<BleDevice>>
     val pairedDevices: StateFlow<List<BleDevice>>
 
-    fun startScan ()
+    suspend fun startScan ()
     fun stopScan()
    suspend fun provisionDevice(activity: Activity, device: BleDevice, ssid: String, password: String)
 

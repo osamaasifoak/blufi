@@ -32,7 +32,7 @@ class BleViewModel @Inject constructor(
         _state.value
     )
 
-    fun startScan() {
+    suspend fun startScan() {
         bleController.startScan()
     }
 
@@ -40,7 +40,12 @@ class BleViewModel @Inject constructor(
         bleController.stopScan()
     }
 
-    suspend fun provisionDevice(activity: Activity, device: BleDevice, ssid: String, password: String) {
+    suspend fun provisionDevice(
+        activity: Activity,
+        device: BleDevice,
+        ssid: String,
+        password: String
+    ) {
         bleController.provisionDevice(activity, device, ssid, password)
     }
 }

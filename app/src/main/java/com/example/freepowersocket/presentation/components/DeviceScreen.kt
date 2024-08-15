@@ -24,6 +24,7 @@ import com.example.freepowersocket.presentation.BleUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlin.reflect.KSuspendFunction0
 import kotlin.reflect.KSuspendFunction4
 
 @Composable
@@ -33,7 +34,7 @@ fun DeviceScreen(
     activity: Activity,
     wifiPassword: String,
     state: BleUiState,
-    onStartScan: () -> Unit,
+    onStartScan: suspend () -> Unit,
     onStopScan: () -> Unit,
     provisionDevice: KSuspendFunction4<Activity, BleDevice, String, String, Unit>
 ) {
@@ -67,7 +68,7 @@ fun DeviceScreen(
         Row(
             modifier = Modifier.fillMaxWidth()
         ) {
-            Button(onClick = onStartScan) {
+            Button(onClick = {}) {
                 Text(text = "Start Scan")
             }
             Button(onClick = onStopScan) {

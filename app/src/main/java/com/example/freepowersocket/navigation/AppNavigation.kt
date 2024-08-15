@@ -30,6 +30,7 @@ fun AppNavigation(
             DeviceScanScreen(
                 navController = navController,
                 onStartScan = viewModel::startScan,
+                onStopScan = viewModel::stopScan,
                 state = state,
             )
         }

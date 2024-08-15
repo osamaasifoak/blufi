@@ -86,11 +86,10 @@ class BleController(
     }
 
 
-    override fun startScan() {
+    override suspend fun startScan() {
         if (!hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
             return
         }
-
 
         bluetoothAdapter?.bluetoothLeScanner?.startScan(_scanCallback)
     }
