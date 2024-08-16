@@ -8,5 +8,10 @@
     <string name="password">Password</string>
     <string name="submit">Submit</string>
     <string name="continue_">Continue</string>
+    <string name="configuring_devices">Configuring devices</string>
+    <string name="devices_configured">devices configured</string>
+    <string name="please_wait">Please wait…</string>
+    <string name="configuring">Configuring</string>
+    <string name="success">Success</string>
 
 </resources>

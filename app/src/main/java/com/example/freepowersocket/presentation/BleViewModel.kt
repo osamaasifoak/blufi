@@ -1,6 +1,5 @@
 package com.example.freepowersocket.presentation
 
-import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.freepowersocket.domain.BleControllerInterface
@@ -18,18 +17,24 @@ class BleViewModel @Inject constructor(
 ) : ViewModel() {
     private val _state = MutableStateFlow(BleUiState())
     val state = combine(
-        bleController.scannedDevices,
-        bleController.pairedDevices,
-        _state
+        bleController.scannedDevices, bleController.pairedDevices, _state
     ) { scannedDevice, pairedDevices, state ->
         state.copy(
-            scannedDevices = scannedDevice,
-            pairedDevices = pairedDevices
+            scannedDevices = scannedDevice, pairedDevices = pairedDevices
         )
     }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000),
-        _state.value
+        viewModelScope, SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000), _state.value
+    )
+
+    private val _provisionDeviceState = MutableStateFlow(BleUiState())
+    val provisionDeviceState = combine(
+        bleController.provisioningDeviceStates, _provisionDeviceState
+    ) { provisioningDeviceStates, state ->
+        state.copy(
+            provisioningDeviceStates = provisioningDeviceStates,
+        )
+    }.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(stopTimeoutMillis = 5000), _state.value
     )
 
     suspend fun startScan() {
@@ -41,11 +46,8 @@ class BleViewModel @Inject constructor(
     }
 
     suspend fun provisionDevice(
-        activity: Activity,
-        device: BleDevice,
-        ssid: String,
-        password: String
+        device: BleDevice, ssid: String, password: String
     ) {
-        bleController.provisionDevice(activity, device, ssid, password)
+        bleController.provisionDevice(device, ssid, password)
     }
 }

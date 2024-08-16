@@ -7,13 +7,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.freepowersocket.presentation.BleViewModel
+import com.example.freepowersocket.presentation.components.DeviceProvisioningScreen
 import com.example.freepowersocket.presentation.components.DeviceScanScreen
-import com.example.freepowersocket.presentation.components.DeviceScreen
 import com.example.freepowersocket.presentation.components.WifiPasswordScreen
 
 @Composable
@@ -39,9 +40,14 @@ fun AppNavigation(
             WifiPasswordScreen(navController = navController)
         }
 
-        composable("DeviceScreen/?password={password}",
+        composable("DeviceProvisioningScreen/{ssid}?password={password}",
             arguments = listOf(
+                navArgument("ssid") {
+                    type= NavType.StringType
+                    nullable = false
+                },
                 navArgument("password") {
+                    type= NavType.StringType
                     nullable = true
                 }
             )
@@ -49,14 +55,14 @@ fun AppNavigation(
 
             val viewModel = hiltViewModel<BleViewModel>()
             val state by viewModel.state.collectAsState()
-            DeviceScreen(
+            val provisionDeviceState by viewModel.provisionDeviceState.collectAsState()
+
+            DeviceProvisioningScreen(
                 navController = navController,
-                context = context,
-                activity = activity,
+                ssid = backStackEntry.arguments?.getString("ssid").toString(),
                 wifiPassword = backStackEntry.arguments?.getString("password").toString(),
                 state = state,
-                onStartScan = viewModel::startScan,
-                onStopScan = viewModel::stopScan,
+                provisionDeviceState= provisionDeviceState,
                 provisionDevice = viewModel::provisionDevice,
             )
         }

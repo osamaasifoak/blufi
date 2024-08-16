@@ -116,7 +116,7 @@ fun WifiPasswordScreen(
             )
             Button(
                 onClick = {
-                    navController.navigate("DeviceScreen/?password=$wifiPassword")
+                    navController.navigate("DeviceProvisioningScreen/$ssid?password=$wifiPassword")
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.royal)),
                 shape = RoundedCornerShape(8.dp),

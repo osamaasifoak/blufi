@@ -2,7 +2,6 @@ package com.example.freepowersocket.data
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
@@ -19,6 +18,7 @@ import blufi.espressif.params.BlufiConfigureParams
 import blufi.espressif.params.BlufiParameter
 import com.example.freepowersocket.domain.BleControllerInterface
 import com.example.freepowersocket.domain.BleDevice
+import com.example.freepowersocket.presentation.ProvisioningDeviceUiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -50,6 +50,10 @@ class BleController(
     private val _pairedDevices = MutableStateFlow<List<BleDevice>>(emptyList())
     override val pairedDevices: StateFlow<List<BleDevice>>
         get() = _pairedDevices.asStateFlow()
+
+    private val _provisioningDeviceStates =
+        MutableStateFlow<Map<String, ProvisioningDeviceUiState>>(emptyMap())
+    override val provisioningDeviceStates: StateFlow<Map<String, ProvisioningDeviceUiState>> get() = _provisioningDeviceStates.asStateFlow()
 
 
     private var _scanCallback: ScanCallback = object : ScanCallback() {
@@ -116,15 +120,14 @@ class BleController(
     }
 
     override suspend fun provisionDevice(
-        activity: Activity,
         device: BleDevice,
         ssid: String,
         password: String
     ) =
         withContext(Dispatchers.IO) {
-            val blufiClient = BlufiClient(activity, device.device)
-            blufiClient.setBlufiCallback( object : BlufiCallback() {
-
+            updateDeviceState(device, ProvisioningDeviceUiState.Loading(device))
+            val blufiClient = BlufiClient(context, device.device)
+            blufiClient.setBlufiCallback(object : BlufiCallback() {
                 override fun onGattPrepared(
                     client: BlufiClient?,
                     gatt: BluetoothGatt?,
@@ -138,31 +141,33 @@ class BleController(
                 override fun onConfigureResult(client: BlufiClient?, status: Int) {
                     if (status == STATUS_SUCCESS) {
                         // Provisioning successful
-                        _pairedDevices.update { devices ->
-                            if (device in devices) devices
-                            else devices + device
-
-                        }
-                        announceDeviceUsingMdns(device)
+                        updateDeviceState(device, ProvisioningDeviceUiState.Success(device))
                     } else {
                         // Provisioning failed
                         Log.e("$status", client.toString())
-                        _pairedDevices.update { devices ->
-                            if (device in devices) devices
-                            else devices + device
-
-                        }
+                        updateDeviceState(
+                            device,
+                            ProvisioningDeviceUiState.Error(
+                                device,
+                                Exception("Provisioning failed with status $status")
+                            )
+                        )
                     }
                 }
 
                 override fun onError(client: BlufiClient?, errCode: Int) {
                     Log.e("$errCode", client.toString())
-                    // Handle error
+                    updateDeviceState(
+                        device,
+                        ProvisioningDeviceUiState.Error(
+                            device,
+                            Exception("Error occurred with code $errCode")
+                        )
+                    )
                 }
             })
 
             blufiClient.connect()
-
             val params = BlufiConfigureParams()
             params.opMode = BlufiParameter.OP_MODE_SOFTAP
             params.softAPChannel = 6  // Choose a valid channel (1-13 for 2.4GHz)
@@ -171,6 +176,16 @@ class BleController(
 //            params.staPassword = password
             blufiClient.configure(params)
         }
+
+
+    private fun updateDeviceState(device: BleDevice, newState: ProvisioningDeviceUiState) {
+        _provisioningDeviceStates.update { currentStates ->
+            currentStates.toMutableMap().apply {
+                put(device.device.address, newState)
+            }
+        }
+    }
+
 
     @SuppressLint("MissingPermission")
     private fun announceDeviceUsingMdns(device: BleDevice) {

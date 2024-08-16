@@ -1,5 +1,6 @@
 package com.example.freepowersocket.presentation.components
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -93,29 +94,32 @@ fun DeviceScanScreen(
 
         topBar = {
             Appbar(label = stringResource(id = R.string.connect_new_devices), widget = {
-                ActivityCard(cardSubtitle = if (isScanning) stringResource(id = R.string.scanning_for_new_devices)
-                else stringResource(
-                    id = R.string.scan_completed
-                ), cardTitle = "${state.scannedDevices.size + 1} Found", widget = {
-                    LinearProgressIndicator(
-                        progress = { currentProgress },
-                        color = Color.White,
-                        strokeCap = StrokeCap.Round,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
-                            .padding(top = 2.dp)
-                    )
-                })
+                ActivityCard(
+                    leadingLottieAsset = if (isScanning) R.raw.radar else null,
+                    leadingSvgAsset = if (!isScanning) R.drawable.ic_scan_complete else null,
+                    cardTitle = if (isScanning) stringResource(id = R.string.scanning_for_new_devices) else stringResource(
+                        id = R.string.scan_completed
+                    ),
+                    cardSubtitle = "${state.scannedDevices.size + 1} Found", widget = {
+                        LinearProgressIndicator(
+                            progress = { currentProgress },
+                            color = Color.White,
+                            strokeCap = StrokeCap.Round,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(14.dp))
+                                .padding(top = 2.dp)
+                        )
+                    })
             })
         }
 
 
     ) { innerPadding ->
         LazyColumn(
+            contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(top = 16.dp)
         ) {
             itemsIndexed(state.scannedDevices) { index, device ->
                 DeviceListItem(
